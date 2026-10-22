@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Map Distance Calculator</title>
+  <style>
+    #map { height: 400px; width: 100%; margin-bottom:20px; }
+  </style>
+  <!-- Replace YOUR_API_KEY with your real Google Maps API key -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCL3cTE_OIHh3HykYzkHcHfVpM_c4YNEhY"></script>
+</head>
+<body>
+  <h1>Google Map Distance Calculator</h1>
+
+  <!-- Map container -->
+  <div id="map"></div>
+
+  <!-- Coordinate inputs -->
+  <div>
+    <label for="lat1">Latitude 1:</label>
+    <input type="text" id="lat1">
+    <label for="lon1">Longitude 1:</label>
+    <input type="text" id="lon1"><br><br>
+
+    <label for="lat2">Latitude 2:</label>
+    <input type="text" id="lat2">
+    <label for="lon2">Longitude 2:</label>
+    <input type="text" id="lon2"><br><br>
+
+    <button onclick="calculateDistance()">Calculate Distance</button>
+  </div>
+
+  <p id="result" style="font-weight:bold;"></p>
+
+  <script>
+    let map;
+    let marker1, marker2, line;
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 20, lng: 0 },
+        zoom: 2,
+      });
+    }
+
+    function calculateDistance() {
+      const lat1 = parseFloat(document.getElementById("lat1").value);
+      const lon1 = parseFloat(document.getElementById("lon1").value);
+      const lat2 = parseFloat(document.getElementById("lat2").value);
+      const lon2 = parseFloat(document.getElementById("lon2").value);
+
+      if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
+        document.getElementById("result").innerText = "Please enter valid numbers.";
+        return;
+      }
+
+      // Remove old markers/line
+      if (marker1) marker1.setMap(null);
+      if (marker2) marker2.setMap(null);
+      if (line) line.setMap(null);
+
+      // Add new markers
+      marker1 = new google.maps.Marker({ position: { lat: lat1, lng: lon1 }, map });
+      marker2 = new google.maps.Marker({ position: { lat: lat2, lng: lon2 }, map });
+
+      // Draw line between them
+      line = new google.maps.Polyline({
+        path: [{ lat: lat1, lng: lon1 }, { lat: lat2, lng: lon2 }],
+        geodesic: true,
+        strokeColor: "red",
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+        map,
+      });
+
+      // Fit map to markers
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend({ lat: lat1, lng: lon1 });
+      bounds.extend({ lat: lat2, lng: lon2 });
+      map.fitBounds(bounds);
+
+      // Calculate distance (Haversine formula)
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(lat1 * Math.PI/180) *
+                Math.cos(lat2 * Math.PI/180) *
+                Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c;
+
+      document.getElementById("result").innerText = `Distance: ${distance.toFixed(2)} km`;
+    }
+
+    // Initialize map when page loads
+    window.onload = initMap;
+  </script>
+</body>
+</html>
